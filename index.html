@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyDayList – Task manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f5;--surface:#fff;--ink:#16202e;--muted:#667389;--line:#dde3ec;
+  --accent:#2457d6;--accent-ink:#fff;--soft:#e4ebfb;
+  --high:#d1384f;--med:#d98a12;--low:#2f9b6a;--ok:#2f9b6a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1520;--surface:#18202e;--ink:#e8edf5;--muted:#8d9ab0;--line:#27324a;
+  --accent:#6b93ff;--accent-ink:#0b1220;--soft:#202c49;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1520;--surface:#18202e;--ink:#e8edf5;--muted:#8d9ab0;--line:#27324a;
+  --accent:#6b93ff;--accent-ink:#0b1220;--soft:#202c49;color-scheme:dark;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;max-width:1200px;margin:0 auto}
+nav{padding:28px 18px;border-right:1px solid var(--line);position:sticky;top:0;align-self:start;height:100vh}
+.logo{font-weight:800;font-size:24px;letter-spacing:-.02em;margin:0 10px 26px}
+nav a{display:block;padding:9px 12px;margin-bottom:4px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600}
+nav a:hover{background:var(--soft)}
+nav a.on{background:var(--accent);color:var(--accent-ink)}
+main{padding:32px clamp(16px,4vw,44px) 60px;min-width:0}
+h1{font-size:clamp(26px,4vw,38px);line-height:1.1;letter-spacing:-.025em;font-weight:800;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 24px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.stat span{color:var(--muted);font-size:13px}
+.stat.warn b{color:var(--high)}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin:6px 0 24px}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .3s}
+.add{display:flex;flex-wrap:wrap;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:20px}
+.add input[type=text]{flex:1 1 200px}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:9px 16px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+h2{font-size:17px;margin:0 0 10px;font-weight:600}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.task{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--low);border-radius:12px;padding:10px 12px}
+.task.p-high{border-left-color:var(--high)}.task.p-med{border-left-color:var(--med)}
+.task input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);flex:none}
+.task .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.task.done .t{text-decoration:line-through;color:var(--muted)}
+.chip{font-size:12px;color:var(--muted);white-space:nowrap}
+.chip.late{color:var(--high);font-weight:600}
+.x{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;padding:2px 6px;border-radius:6px}
+.x:hover{color:var(--high);background:var(--soft)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tools input{flex:1 1 180px}
+.empty{color:var(--muted);padding:26px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.col{background:var(--soft);border-radius:14px;padding:12px}
+.col h2 span{color:var(--muted);font-weight:400}
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--low);border-radius:10px;padding:10px;margin-bottom:8px}
+.card.p-high{border-left-color:var(--high)}.card.p-med{border-left-color:var(--med)}
+.card .row{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.mv{display:flex;gap:4px}
+.mv button{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:2px 9px}
+.mv button:disabled{opacity:.35;cursor:default}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  nav{position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;z-index:5;display:flex;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--line);background:var(--surface)}
+  nav a{flex:1;text-align:center;margin:0}.logo{display:none}
+  main{padding-bottom:100px}
+  .cols{grid-template-columns:1fr}
+}
+input[type=checkbox]{accent-color:var(--accent)}
+html:root[data-accent=violet]{--accent:#7a4de8}
+html:root[data-accent=teal]{--accent:#0d98a6}
+html:root[data-accent=green]{--accent:#1f9d6b}
+html:root[data-accent=rose]{--accent:#e0457b}
+html:root:is([data-accent=violet],[data-accent=teal],[data-accent=green],[data-accent=rose]){--accent-ink:#fff;--soft:color-mix(in srgb,var(--accent) 16%,transparent)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;display:none;background:radial-gradient(45vmax 45vmax at 12% 8%,color-mix(in srgb,var(--accent) 50%,transparent),transparent),radial-gradient(38vmax 38vmax at 88% 28%,#ff7ab84d,transparent),radial-gradient(45vmax 45vmax at 45% 105%,#3ecfb24d,transparent)}
+html[data-glass=on] body::before{display:block}
+html[data-glass=on] :is(.stat,.add,.task,.card,.cal,.focus,.MyDayListl,nav){background:color-mix(in srgb,var(--surface) 52%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);box-shadow:inset 0 1px 0 #ffffff3d,0 8px 24px #0000001a}
+html[data-glass=on] .col{background:color-mix(in srgb,var(--surface) 30%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}}
+.enter :is(h1,.sub,.stat,.add,.task,.col,.cal,.focus,.MyDayListl){animation:pop .4s cubic-bezier(.2,.8,.2,1) both}
+.enter :is(.task,.col):nth-child(2){animation-delay:.05s}.enter :is(.task,.col):nth-child(3){animation-delay:.1s}.enter .task:nth-child(n+4){animation-delay:.15s}
+.task,.card,.stat,.cc,.btn{transition:transform .18s,box-shadow .18s,background .2s}
+.card:hover,.task:hover{transform:translateY(-2px)}
+.btn:active{transform:scale(.96)}
+html[data-motion=off] *,html[data-motion=off] *::before{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.card[draggable]{cursor:grab}.dragging{opacity:.45}
+.over{outline:2px dashed var(--accent);background:var(--soft)}
+.focus{max-width:420px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:16px;justify-items:center}
+.seg{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:12px;border:1px solid var(--line);flex-wrap:wrap}
+.seg button{border:0;background:none;border-radius:9px;padding:7px 12px;color:var(--muted);font-weight:600}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.ring{position:relative;width:240px;height:240px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6}
+.ring .tr{stroke:var(--line)}
+.ring .pg{stroke:var(--accent);stroke-linecap:round;stroke-dasharray:100;transition:stroke-dashoffset .4s linear}
+#tm{position:absolute;inset:0;display:grid;place-items:center;font-size:52px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ctl{display:flex;gap:8px}.focus select{width:100%}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:18px}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:10px}.ch h2{flex:1;margin:0}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow{font-size:12px;color:var(--muted);text-align:center}
+.day{min-height:84px;border:1px solid var(--line);border-radius:10px;padding:4px;overflow:hidden;cursor:pointer;background:color-mix(in srgb,var(--bg) 60%,transparent)}
+.day.blank{border:0;background:none;cursor:default}
+.day b{font-size:12px;color:var(--muted)}
+.day.today b{color:var(--accent-ink);background:var(--accent);border-radius:20px;padding:0 6px}
+.day.sel{outline:2px solid var(--accent)}
+.day small{font-size:11px;color:var(--muted)}
+.cc{font-size:11px;line-height:1.3;padding:2px 5px;margin-top:3px;border-radius:5px;background:var(--soft);border-left:3px solid var(--low);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:grab}
+.cc.p-high{border-left-color:var(--high)}.cc.p-med{border-left-color:var(--med)}.cc.done{text-decoration:line-through;opacity:.6}
+.MyDayListl{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.MyDayListl label{display:flex;align-items:center;gap:10px;margin:6px 0}
+.nums{display:flex;gap:12px;flex-wrap:wrap}.nums input{width:80px}
+.sw{display:flex;gap:10px}.sw button{width:32px;height:32px;border-radius:50%;border:3px solid transparent}.sw button.on{border-color:var(--ink)}
+.nb{margin-left:6px;font-size:12px;font-variant-numeric:tabular-nums}
+@media (max-width:760px){nav a{padding:8px 0;font-size:11.5px}.day{min-height:56px}.cc{font-size:10px}.ring{width:210px;height:210px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav aria-label="Main">
+    <div class="logo">MyDayList</div>
+    <a href="#/home" data-r="home">Home</a>
+    <a href="#/tasks" data-r="tasks">Tasks</a>
+    <a href="#/board" data-r="board">Board</a>
+    <a href="#/calendar" data-r="calendar">Calendar</a>
+    <a href="#/focus" data-r="focus">Focus<span id="nb" class="nb"></span></a>
+    <a href="#/settings" data-r="settings">Settings</a>
+  </nav>
+  <main id="view"></main>
+</div>
+<script>
+(function(){
+  var KEY="MyDayList.tasks.v1", view=document.getElementById("view");
+  var STATUS=["todo","doing","done"], LABEL={todo:"To do",doing:"In progress",done:"Done"};
+  var PRI={high:"High",med:"Medium",low:"Low"};
+  function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+  var today=iso(new Date());
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+  function load(){
+    try{var r=localStorage.getItem(KEY);if(r){return JSON.parse(r)}}catch(e){}
+    return [
+      {id:uid(),title:"Plan the week’s priorities",status:"doing",priority:"high",due:today},
+      {id:uid(),title:"Reply to open emails",status:"todo",priority:"med",due:today},
+      {id:uid(),title:"Book dentist appointment",status:"todo",priority:"low",due:""},
+      {id:uid(),title:"Set up the new project folder",status:"done",priority:"low",due:""}
+    ];
+  }
+  var tasks=load();
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(tasks))}catch(e){}}
+  function fmt(d){if(!d)return"";var p=d.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString(undefined,{month:"short",day:"numeric"})}
+  function late(t){return t.due&&t.due<today&&t.status!=="done"}
+  function find(id){return tasks.filter(function(t){return t.id===id})[0]}
+  var rank={high:0,med:1,low:2};
+  function byUrgency(a,b){return (a.due||"9999").localeCompare(b.due||"9999")||rank[a.priority]-rank[b.priority]}
+
+  function addForm(dv){
+    return '<form class="add" id="addf"><input type="text" name="title" placeholder="Add a task…" aria-label="Task title" required maxlength="140">'+
+      '<select name="priority" aria-label="Priority"><option value="med">Medium</option><option value="high">High</option><option value="low">Low</option></select>'+
+      '<input type="date" name="due" aria-label="Due date" value="'+(dv||"")+'"><button class="btn" type="submit">Add task</button></form>';
+  }
+  function bindAdd(after){
+    var f=document.getElementById("addf");
+    f.addEventListener("submit",function(e){
+      e.preventDefault();
+      var d=new FormData(f), title=String(d.get("title")).trim();
+      if(!title)return;
+      tasks.unshift({id:uid(),title:title,status:"todo",priority:d.get("priority"),due:d.get("due")||""});
+      save();after();
+    });
+  }
+  function taskRow(t){
+    return '<li class="task p-'+t.priority+(t.status==="done"?" done":"")+'" data-id="'+t.id+'">'+
+      '<input type="checkbox" '+(t.status==="done"?"checked":"")+' aria-label="Mark done">'+
+      '<span class="t">'+esc(t.title)+'</span>'+
+      (t.pomos?'<span class="chip">'+t.pomos+' focus</span>':"")+
+      (t.due?'<span class="chip'+(late(t)?" late":"")+'">'+(late(t)?"Overdue · ":"")+fmt(t.due)+'</span>':"")+
+      '<button class="x" aria-label="Delete task" title="Delete">×</button></li>';
+  }
+  function bindList(root,after){
+    root.addEventListener("click",function(e){
+      var li=e.target.closest("[data-id]");if(!li)return;
+      var t=find(li.dataset.id);if(!t)return;
+      if(e.target.matches(".x")){tasks=tasks.filter(function(x){return x!==t});save();after()}
+      else if(e.target.matches("input[type=checkbox]")){t.status=e.target.checked?"done":"todo";save();after()}
+      else if(e.target.closest(".mv button")){
+        var i=STATUS.indexOf(t.status)+(+e.target.closest("button").dataset.d);
+        if(i>=0&&i<3){t.status=STATUS[i];save();after()}
+      }
+    });
+  }
+
+  function home(){
+    var open=tasks.filter(function(t){return t.status!=="done"});
+    var done=tasks.length-open.length;
+    var pct=tasks.length?Math.round(done/tasks.length*100):0;
+    var h=new Date().getHours();
+    var greet=h<12?"Good morning":h<18?"Good afternoon":"Good evening";
+    var next=open.slice().sort(byUrgency).slice(0,6);
+    view.innerHTML='<h1>'+greet+'</h1><p class="sub">'+new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+'</p>'+
+      '<div class="stats"><div class="stat"><b>'+open.length+'</b><span>Open tasks</span></div>'+
+      '<div class="stat"><b>'+open.filter(function(t){return t.due===today}).length+'</b><span>Due today</span></div>'+
+      '<div class="stat warn"><b>'+open.filter(late).length+'</b><span>Overdue</span></div>'+
+      '<div class="stat"><b>'+pct+'%</b><span>Completed</span></div></div>'+
+      '<div class="bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'+
+      addForm()+'<h2>Up next</h2>'+
+      (next.length?'<ul class="list" id="l">'+next.map(taskRow).join("")+'</ul>':'<div class="empty">Nothing open. Add a task above to get started.</div>');
+    bindAdd(home);
+    var l=document.getElementById("l");if(l)bindList(l,home);
+  }
+
+  var q="",fl="all",so="urgency";
+  function tasksView(){
+    view.innerHTML='<h1>Tasks</h1><p class="sub">Everything in one list.</p>'+addForm()+
+      '<div class="tools"><input type="search" id="q" placeholder="Search tasks…" aria-label="Search tasks" value="'+esc(q)+'">'+
+      '<select id="fl" aria-label="Filter"><option value="all">All</option><option value="todo">To do</option><option value="doing">In progress</option><option value="done">Done</option></select>'+
+      '<select id="so" aria-label="Sort"><option value="urgency">Most urgent</option><option value="new">Newest</option></select></div>'+
+      '<ul class="list" id="l"></ul>';
+    document.getElementById("fl").value=fl;document.getElementById("so").value=so;
+    function list(){
+      var r=tasks.filter(function(t){return (fl==="all"||t.status===fl)&&t.title.toLowerCase().indexOf(q.toLowerCase())>-1});
+      if(so==="urgency")r=r.slice().sort(function(a,b){return (a.status==="done")-(b.status==="done")||byUrgency(a,b)});
+      var l=document.getElementById("l");
+      l.innerHTML=r.length?r.map(taskRow).join(""):'<div class="empty">No tasks match. Change the filter or add a new task.</div>';
+    }
+    list();
+    bindAdd(tasksView);
+    bindList(document.getElementById("l"),list);
+    document.getElementById("q").addEventListener("input",function(e){q=e.target.value;list()});
+    document.getElementById("fl").addEventListener("change",function(e){fl=e.target.value;list()});
+    document.getElementById("so").addEventListener("change",function(e){so=e.target.value;list()});
+  }
+
+  function board(){
+    view.innerHTML='<h1>Board</h1><p class="sub">Drag cards between columns, or use the arrows.</p>'+addForm()+'<div class="cols" id="cols"></div>';
+    var c=document.getElementById("cols");
+    c.innerHTML=STATUS.map(function(s){
+      var r=tasks.filter(function(t){return t.status===s});
+      var i=STATUS.indexOf(s);
+      return '<section class="col" data-drop="status" data-v="'+s+'"><h2>'+LABEL[s]+' <span>'+r.length+'</span></h2>'+
+        (r.map(function(t){
+          return '<div class="card p-'+t.priority+'" draggable="true" data-id="'+t.id+'"><div>'+esc(t.title)+'</div><div class="row">'+
+            '<span class="chip'+(late(t)?" late":"")+'">'+(t.due?fmt(t.due):PRI[t.priority])+'</span>'+
+            '<span class="mv"><button data-d="-1" aria-label="Move back" '+(i===0?"disabled":"")+'>‹</button><button data-d="1" aria-label="Move forward" '+(i===2?"disabled":"")+'>›</button></span></div></div>';
+        }).join("")||'<div class="chip">No tasks here.</div>')+'</section>';
+    }).join("");
+    bindAdd(board);
+    bindList(c,board);
+  }
+
+  function route(keep){
+    var r=(location.hash.replace(/^#\/?/,"")||"home");
+    if(["home","tasks","board","calendar","focus","settings"].indexOf(r)<0)r="home";
+    document.querySelectorAll("nav a").forEach(function(a){a.classList.toggle("on",a.dataset.r===r)});
+    ({home:home,tasks:tasksView,board:board,calendar:cal,focus:focusV,settings:settings})[r]();
+    if(!keep){window.scrollTo(0,0);view.classList.remove("enter");void view.offsetWidth;view.classList.add("enter");clearTimeout(et);et=setTimeout(function(){view.classList.remove("enter")},800)}
+  }
+  var et,P;
+  try{P=JSON.parse(localStorage.getItem("MyDayList.prefs"))}catch(x){}
+  P=Object.assign({theme:"auto",accent:"blue",glass:true,motion:true,log:{}},P||{});
+  P.dur=Object.assign({focus:25,short:5,long:15},P.dur||{});
+  function sp(){try{localStorage.setItem("MyDayList.prefs",JSON.stringify(P))}catch(x){}}
+  function apply(){var r=document.documentElement.dataset;r.theme=P.theme;r.accent=P.accent;r.glass=P.glass?"on":"off";r.motion=P.motion?"on":"off"}
+  apply();
+
+  /* Focus timer */
+  var MODES={focus:"Focus",short:"Short break",long:"Long break"};
+  var T={mode:"focus",left:P.dur.focus*60,run:false,end:0,n:0,tid:""};
+  function g(i){return document.getElementById(i)}
+  function paint(){
+    var m=Math.floor(T.left/60),s=T.left%60,txt=(m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+    if(g("tm")){
+      g("tm").textContent=txt;g("pg").style.strokeDashoffset=100*(1-T.left/(P.dur[T.mode]*60));
+      g("go").textContent=T.run?"Pause":"Start";
+      document.querySelectorAll("[data-mode]").forEach(function(b){b.classList.toggle("on",b.dataset.mode===T.mode)});
+      var l=P.log[today]||{n:0,min:0};g("st").textContent="Today: "+l.n+" session"+(l.n===1?"":"s")+", "+l.min+" min focused";
+    }
+    document.title=T.run?txt+" · "+MODES[T.mode]:"MyDayList – Task manager";
+    if(g("nb"))g("nb").textContent=T.run?txt:"";
+  }
+  function setMode(m){T.mode=m;T.run=false;T.left=P.dur[m]*60;paint()}
+  function beep(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),v=a.createGain();o.connect(v);v.connect(a.destination);v.gain.setValueAtTime(.15,a.currentTime);v.gain.exponentialRampToValueAtTime(.001,a.currentTime+.8);o.frequency.value=660;o.start();o.stop(a.currentTime+.8)}catch(x){}}
+  function finish(){
+    T.run=false;beep();
+    if(T.mode==="focus"){
+      var l=P.log[today]=P.log[today]||{n:0,min:0};l.n++;l.min+=P.dur.focus;T.n++;
+      var t=find(T.tid);if(t){t.pomos=(t.pomos||0)+1;save()}
+      sp();setMode(T.n%4===0?"long":"short");
+    }else setMode("focus");
+  }
+  setInterval(function(){if(!T.run)return;T.left=Math.max(0,Math.round((T.end-Date.now())/1000));if(T.left<=0)finish();else paint()},300);
+  function focusV(){
+    var open=tasks.filter(function(t){return t.status!=="done"});
+    view.innerHTML='<h1>Focus</h1><p class="sub">Work in focused sessions, then take a break. Every fourth break is a long one.</p>'+
+     '<div class="focus"><div class="seg">'+Object.keys(MODES).map(function(k){return '<button data-mode="'+k+'">'+MODES[k]+'</button>'}).join("")+'</div>'+
+     '<div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tr" cx="60" cy="60" r="54"/><circle class="pg" id="pg" cx="60" cy="60" r="54" pathLength="100"/></svg><div id="tm" role="timer"></div></div>'+
+     '<select id="ft" aria-label="Task to focus on"><option value="">No task selected</option>'+open.map(function(t){return '<option value="'+t.id+'"'+(t.id===T.tid?" selected":"")+'>'+esc(t.title)+'</option>'}).join("")+'</select>'+
+     '<div class="ctl"><button class="btn" id="go"></button><button class="btn ghost" id="rs">Reset</button><button class="btn ghost" id="sk">Skip</button></div><p class="chip" id="st"></p></div>';
+    view.querySelector(".focus").addEventListener("click",function(e){
+      var b=e.target.closest("button");if(!b)return;
+      if(b.dataset.mode)setMode(b.dataset.mode);
+      else if(b.id==="go"){if(T.run){T.run=false}else{T.end=Date.now()+T.left*1000;T.run=true}paint()}
+      else if(b.id==="rs")setMode(T.mode);
+      else if(b.id==="sk")setMode(T.mode==="focus"?"short":"focus");
+    });
+    g("ft").addEventListener("change",function(e){T.tid=e.target.value});
+    paint();
+  }
+
+  /* Calendar */
+  var cy=new Date().getFullYear(),cm=new Date().getMonth(),sel=today;
+  function chip(t){return '<div class="cc p-'+t.priority+(t.status==="done"?" done":"")+'" draggable="true" data-id="'+t.id+'" title="'+esc(t.title)+'">'+esc(t.title)+'</div>'}
+  function cal(){
+    var first=new Date(cy,cm,1).getDay(),n=new Date(cy,cm+1,0).getDate(),c="";
+    ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(function(d){c+='<div class="dow">'+d+'</div>'});
+    for(var i=0;i<first;i++)c+='<div class="day blank"></div>';
+    for(var d=1;d<=n;d++){
+      var k=iso(new Date(cy,cm,d)),r=tasks.filter(function(t){return t.due===k});
+      c+='<div class="day'+(k===today?" today":"")+(k===sel?" sel":"")+'" data-drop="due" data-v="'+k+'" data-day="'+k+'"><b>'+d+'</b>'+r.slice(0,3).map(chip).join("")+(r.length>3?'<small>+'+(r.length-3)+' more</small>':"")+'</div>';
+    }
+    var un=tasks.filter(function(t){return !t.due&&t.status!=="done"}),sd=tasks.filter(function(t){return t.due===sel});
+    view.innerHTML='<h1>Calendar</h1><p class="sub">Drag a task onto a day to set its due date, or tap a day to add one.</p>'+
+     '<div class="cal"><div class="ch"><h2>'+new Date(cy,cm,1).toLocaleDateString(undefined,{month:"long",year:"numeric"})+'</h2><button class="btn ghost" data-n="-1" aria-label="Previous month">‹</button><button class="btn ghost" data-n="0">Today</button><button class="btn ghost" data-n="1" aria-label="Next month">›</button></div><div class="grid">'+c+'</div></div>'+
+     '<h2>'+fmt(sel)+'</h2>'+addForm(sel)+'<ul class="list" id="l">'+(sd.map(taskRow).join("")||'<div class="empty">Nothing due this day.</div>')+'</ul>'+
+     (un.length?'<h2 style="margin-top:20px">No due date</h2><div class="cal">'+un.map(chip).join("")+'</div>':"");
+    view.querySelector(".cal").addEventListener("click",function(e){
+      var b=e.target.closest("[data-n]"),d=e.target.closest("[data-day]");
+      if(b){var v=+b.dataset.n;if(v===0){cy=new Date().getFullYear();cm=new Date().getMonth();sel=today}else{cm+=v;if(cm<0){cm=11;cy--}if(cm>11){cm=0;cy++}}cal()}
+      else if(d){sel=d.dataset.day;cal()}
+    });
+    bindAdd(cal);bindList(g("l"),cal);
+  }
+
+  /* Settings */
+  var ACC={blue:"#2457d6",violet:"#7a4de8",teal:"#0d98a6",green:"#1f9d6b",rose:"#e0457b"};
+  function settings(){
+    view.innerHTML='<h1>Settings</h1><p class="sub">Appearance and focus timer.</p><div class="set">'+
+     '<div class="MyDayListl"><h2>Theme</h2><div class="seg">'+["auto","light","dark"].map(function(k){return '<button data-th="'+k+'" class="'+(P.theme===k?"on":"")+'">'+(k==="auto"?"Match device":k[0].toUpperCase()+k.slice(1))+'</button>'}).join("")+'</div></div>'+
+     '<div class="MyDayListl"><h2>Accent colour</h2><div class="sw">'+Object.keys(ACC).map(function(k){return '<button data-ac="'+k+'" aria-label="'+k+'" title="'+k+'" class="'+(P.accent===k?"on":"")+'" style="background:'+ACC[k]+'"></button>'}).join("")+'</div></div>'+
+     '<div class="MyDayListl"><h2>Effects</h2><label><input type="checkbox" id="gl"'+(P.glass?" checked":"")+'> Glass effect</label><label><input type="checkbox" id="mo"'+(P.motion?" checked":"")+'> Animations</label></div>'+
+     '<div class="MyDayListl"><h2>Timer length (minutes)</h2><div class="nums">'+Object.keys(MODES).map(function(k){return '<label>'+MODES[k]+' <input type="number" min="1" max="120" data-m="'+k+'" value="'+P.dur[k]+'"></label>'}).join("")+'</div></div></div>';
+    var s=view.querySelector(".set");
+    s.addEventListener("click",function(e){
+      var b=e.target.closest("button");if(!b)return;
+      if(b.dataset.th)P.theme=b.dataset.th;
+      if(b.dataset.ac)P.accent=b.dataset.ac;
+      sp();apply();settings();
+    });
+    s.addEventListener("change",function(e){
+      var i=e.target;
+      if(i.id==="gl")P.glass=i.checked;
+      else if(i.id==="mo")P.motion=i.checked;
+      else if(i.dataset.m){var v=Math.max(1,Math.min(120,+i.value||1));P.dur[i.dataset.m]=v;if(!T.run&&T.mode===i.dataset.m)T.left=v*60}
+      sp();apply();
+    });
+  }
+
+  /* Drag and drop (board columns and calendar days) */
+  var dragId=null;
+  function clr(){view.querySelectorAll(".over,.dragging").forEach(function(el){el.classList.remove("over","dragging")})}
+  view.addEventListener("dragstart",function(e){
+    var el=e.target.closest("[draggable]");if(!el)return;
+    dragId=el.dataset.id;el.classList.add("dragging");e.dataTransfer.effectAllowed="move";
+    try{e.dataTransfer.setData("text/plain",dragId)}catch(x){}
+  });
+  view.addEventListener("dragend",function(){dragId=null;clr()});
+  view.addEventListener("dragover",function(e){
+    var z=e.target.closest("[data-drop]");if(!z||!dragId)return;
+    e.preventDefault();clr();z.classList.add("over");
+  });
+  view.addEventListener("drop",function(e){
+    var z=e.target.closest("[data-drop]");if(!z||!dragId)return;
+    e.preventDefault();
+    var t=find(dragId);if(!t)return;
+    if(z.dataset.drop==="status"){
+      var tg=e.target.closest(".card");
+      tasks=tasks.filter(function(x){return x!==t});t.status=z.dataset.v;
+      var i=tg&&tg.dataset.id!==t.id?tasks.indexOf(find(tg.dataset.id)):-1;
+      if(i>-1)tasks.splice(i,0,t);else tasks.push(t);
+    }else t.due=z.dataset.v;
+    save();dragId=null;route(true);
+  });
+
+  window.addEventListener("hashchange",function(){route()});
+  route();
+})();
+</script>
+</body>
+</html>
